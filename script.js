@@ -53,3 +53,52 @@ const cio = new IntersectionObserver(
   { threshold: 0.5 }
 );
 counters.forEach((el) => cio.observe(el));
+
+// Contact form submit
+const form = document.getElementById('leadForm');
+const okMsg = document.getElementById('formMsg');
+const errMsg = document.getElementById('formErr');
+if (form) {
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    okMsg.classList.remove('show');
+    errMsg.classList.remove('show');
+
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+
+    const btn = form.querySelector('.form-submit');
+    const action = form.getAttribute('action') || '';
+    const configured = action && !action.includes('REMPLACER_ID');
+
+    // Endpoint Formspree pas encore configuré : succès de démonstration
+    if (!configured) {
+      okMsg.classList.add('show');
+      form.reset();
+      return;
+    }
+
+    btn.disabled = true;
+    btn.style.opacity = '.7';
+    try {
+      const res = await fetch(action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { Accept: 'application/json' },
+      });
+      if (res.ok) {
+        okMsg.classList.add('show');
+        form.reset();
+      } else {
+        errMsg.classList.add('show');
+      }
+    } catch (_) {
+      errMsg.classList.add('show');
+    } finally {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    }
+  });
+}
